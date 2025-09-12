@@ -94,22 +94,38 @@ function openModal(dateKey) {
 
 async function saveEntry() {
   if (!selectedDateKey.value) return
-  await upsert(selectedDateKey.value, selectedActivities.value)
-  await refreshData()
-  modalRef.value?.close()
+  try {
+    await upsert(selectedDateKey.value, selectedActivities.value)
+    await refreshData()
+    success('Day saved')
+    modalRef.value?.close()
+  } catch (e) {
+    showError('Failed to save day')
+  }
 }
 
 async function deleteEntry() {
   if (!selectedDateKey.value) return
-  await remove(selectedDateKey.value)
-  await refreshData()
-  modalRef.value?.close()
+  try {
+    await remove(selectedDateKey.value)
+    await refreshData()
+    success('Day cleared')
+    modalRef.value?.close()
+  } catch (e) {
+    showError('Failed to clear day')
+  }
 }
 
 async function addActivity() {
   if (!newActivity.value) return
-  await createActivity(newActivity.value)
-  newActivity.value = ''
+  try {
+    const name = newActivity.value
+    await createActivity(name)
+    success(`Added "${name}"`)
+    newActivity.value = ''
+  } catch (e) {
+    showError('Failed to add activity')
+  }
 }
 
 async function removeActivity(id) {
@@ -140,9 +156,15 @@ async function saveEdit(a) {
     cancelEdit()
     return
   }
-  await updateActivity(a._id, name)
-  await Promise.all([fetchActivities(), refreshData()])
-  cancelEdit()
+  try {
+    await updateActivity(a._id, name)
+    await Promise.all([fetchActivities(), refreshData()])
+    success(`Renamed to "${name}"`)
+  } catch (e) {
+    showError('Failed to rename activity')
+  } finally {
+    cancelEdit()
+  }
 }
 
 async function onRemoveActivityFromEntries(name) {
