@@ -118,6 +118,8 @@ const canClean = computed(() => Boolean(selectedName.value && fromKey.value && t
 async function clean() {
   if (!canClean.value) return
   if (!confirm(`Remove "${selectedName.value}" from all days in the selected range?`)) return
+  // Close dialog immediately after confirmation so user sees the calendar
+  dialogRef.value?.close()
   try {
     await $fetch('/api/entries-activity', { method: 'DELETE', query: { name: selectedName.value, fromKey: fromKey.value, toKey: toKey.value } })
     message.value = 'Removed from selected range.'
@@ -161,6 +163,8 @@ const canClear = computed(() => Boolean(clearFromKey.value && clearToKey.value))
 async function clearRange() {
   if (!canClear.value) return
   if (!confirm('This will DELETE all entries in the selected range. Continue?')) return
+  // Close dialog immediately after confirmation so user sees the calendar
+  dialogRef.value?.close()
   try {
     await $fetch('/api/entries.clear', { method: 'DELETE', query: { fromKey: clearFromKey.value, toKey: clearToKey.value } })
     clearMsg.value = 'Cleared entries in range.'
