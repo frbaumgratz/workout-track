@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-const emit = defineEmits(['select'])
+const emit = defineEmits(['select', 'month-change'])
 const props = defineProps({
   entries: { type: Array, default: () => [] }
 })
@@ -80,11 +80,17 @@ const cells = computed(() => {
 
 function prevMonth() {
   current.value = new Date(current.value.getFullYear(), current.value.getMonth() - 1, 1)
+  emit('month-change', current.value)
 }
 function nextMonth() {
   current.value = new Date(current.value.getFullYear(), current.value.getMonth() + 1, 1)
+  emit('month-change', current.value)
 }
 function onSelect(dateIso) { emit('select', dateIso) }
+
+onMounted(() => {
+  emit('month-change', current.value)
+})
 </script>
 
 

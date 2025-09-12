@@ -1,7 +1,7 @@
 <template>
   <section class="grid grid-cols-1 lg:grid-cols-4 gap-8">
     <div class="lg:col-span-3">
-      <CalendarGrid :entries="entries" @select="openModal" />
+      <CalendarGrid :entries="entries" @select="openModal" @month-change="onMonthChange" />
     </div>
     <div class="lg:col-span-1">
       <SummarySidebar :entries="entries" :loading="entriesLoading" />
@@ -96,7 +96,7 @@ async function saveEntry() {
   if (!selectedDateKey.value) return
   try {
     await upsert(selectedDateKey.value, selectedActivities.value)
-    await refreshData()
+    await refreshData(currentMonth.value)
     success('Day saved')
     modalRef.value?.close()
   } catch (e) {
@@ -108,7 +108,7 @@ async function deleteEntry() {
   if (!selectedDateKey.value) return
   try {
     await remove(selectedDateKey.value)
-    await refreshData()
+    await refreshData(currentMonth.value)
     success('Day cleared')
     modalRef.value?.close()
   } catch (e) {
@@ -203,4 +203,10 @@ const { onRefreshEntries } = useAppEvents()
 onRefreshEntries(async () => {
   await refreshData()
 })
+
+const currentMonth = ref(new Date())
+function onMonthChange(d) {
+  currentMonth.value = new Date(d)
+  refreshData(currentMonth.value)
+}
 </script>
