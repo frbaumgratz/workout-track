@@ -1,0 +1,195 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+# INSTRUCTIONS — READ THIS FIRST WHEN CREATING NEW TASKS
+
+This file is a single, self-contained TASK for an AI agent. One task = one file.
+Follow the steps below when creating new tasks.
+
+1. Name your file: place under `./tasks/` and use kebab-case, e.g., `tasks/add-pedidos-endpoint.md`.
+2. Fill the frontmatter (above) completely. Keep `title`, `status`, and `owner` accurate.
+3. Use information-dense keywords throughout (exact file paths like `server/api/pedidos.get.ts`, function signatures, type names, constants, CLI flags).
+4. Define types first if adding new data structures. Reference those types by exact name in later steps.
+5. Order your steps so later steps explicitly reference earlier artifacts by name (files, types, functions).
+6. Keep scope tight: this task should be completable independently. If it's large, split into multiple task files and add them to `dependencies`.
+7. Acceptance criteria must be testable and unambiguous. Include file paths for tests and example CLI/API usage.
+8. Context plan must list the files to add to the model's context at the start (mark dep files read-only) and which files must exist at the end.
+9. Testing strategy: use Vitest with integration-style tests for Nitro route handlers and server utilities. Avoid trivial unit tests (e.g., asserting constants). Frontend SFC tests are optional; prioritize server/API and composables.
+
+---
+
+id: "<unique-id-or-ticket>" # e.g., TASK-0123
+title: "<short, action-oriented task title>" # e.g., "Add GET /api/pedidos endpoint"
+status: "planned" # planned, in-progress, blocked, done
+priority: "P1" # P0, P1, P2
+labels: ["feature", "api", "pedidos"] # free-form tags
+dependencies: ["<other-task-file>"] # list other task files that must be completed first
+created: "YYYY-MM-DD"
+
+# 1) High-Level Objective
+
+<One sentence that describes the user-facing end state. Avoid technical jargon.>
+
+# 2) Background / Context (Optional but recommended)
+
+<Short rationale or business context for why this task exists. Link any tickets/PRDs.>
+
+# 3) Assumptions & Constraints
+
+- ASSUMPTION: <If any info is missing, state the pragmatic assumption here.>
+- Constraint: <e.g., Use only dependencies listed in package.json.>
+- Constraint: <e.g., App SFCs in JavaScript; TypeScript allowed in server utilities and configs.>
+- Constraint: <e.g., Follow Nuxt file-based routing and Nitro patterns.>
+
+# 4) Dependencies (Other Tasks or Artifacts)
+
+- tasks/<other-task-file>.md
+- files/<required-existing-file-or-schema>
+
+# 5) Context Plan
+
+**Beginning (add to model context):**
+
+- nuxt.config.ts _(read-only)_
+- server/utils/mongo.ts _(read-only)_
+- package.json _(read-only)_
+- vitest.config.ts _(read-only)_
+
+**End state (must exist after completion):**
+
+- server/api/pedidos.get.ts
+- server/utils/pedidos.ts
+- tests/api/pedidos.get.test.ts
+- app/pages/pedidos.vue (if UI wiring is part of the task)
+
+# 6) Low-Level Steps (Ordered, information-dense)
+
+> Write concrete, atomic steps. Include file paths, exact names, signatures, params with defaults, return types.
+
+1. Create GET endpoint for pedidos
+
+   - File: `server/api/pedidos.get.ts`
+   - Export default handler:
+     ```ts
+     // server/api/pedidos.get.ts
+     import { getDb } from "~/server/utils/mongo";
+     export default defineEventHandler(async (event) => {
+       const { q, page = "1", pageSize = "20" } = getQuery(event);
+       try {
+         const db = await getDb();
+         const filter = q
+           ? { numero: { $regex: String(q), $options: "i" } }
+           : {};
+         const p = Math.max(1, Number(page) || 1);
+         const ps = Math.max(1, Math.min(100, Number(pageSize) || 20));
+         const items = await db
+           .collection("pedidos")
+           .find(filter)
+           .skip((p - 1) * ps)
+           .limit(ps)
+           .toArray();
+         return { items };
+       } catch (err) {
+         setResponseStatus(event, 500);
+         return { error: "INTERNAL_ERROR", message: "Failed to fetch pedidos" };
+       }
+     });
+     ```
+   - Details:
+     - Parse `q`, `page`, `pageSize` from query; validate/coerce values.
+     - Use `getDb()` from `~/server/utils/mongo`.
+     - Return `{ items }` shape; never return raw arrays.
+
+2. Add server utility
+
+   - File: `server/utils/pedidos.ts`
+   - API:
+     ```ts
+     // server/utils/pedidos.ts
+     import type { Db } from "mongodb";
+     export interface Pedido {
+       _id: any;
+       numero: string;
+       status: string;
+     }
+     export async function listPedidos(
+       db: Db,
+       filter: Record<string, any>,
+       skip = 0,
+       limit = 20
+     ) {
+       return db
+         .collection("pedidos")
+         .find(filter)
+         .skip(skip)
+         .limit(limit)
+         .toArray();
+     }
+     ```
+   - Use this util inside the endpoint where appropriate.
+
+3. UI wire-up (optional)
+
+   - File: `app/pages/pedidos.vue`
+   - Fetch and render list using `useFetch` and a simple table:
+     ```vue
+     <script setup>
+     const { data, error, pending } = await useFetch("/api/pedidos", {
+       query: { page: 1, pageSize: 20 },
+     });
+     </script>
+     <template>
+       <div>
+         <p v-if="pending">Carregando…</p>
+         <p v-else-if="error">Erro ao carregar</p>
+         <table v-else>
+           <tbody>
+             <tr v-for="p in data.items" :key="p._id">
+               <td>{{ p.numero }}</td>
+               <td>{{ p.status }}</td>
+             </tr>
+           </tbody>
+         </table>
+       </div>
+     </template>
+     ```
+
+4. Tests
+   - File: `tests/api/pedidos.get.test.ts` (Vitest)
+   - Cases:
+     - Returns `{ items }` array for default query
+     - Respects `q` filter
+     - Handles DB failure by returning `{ error, message }` with status 500
+
+# 7) Types & Interfaces (if applicable)
+
+> Define or reference types here so the model has a stable contract.
+
+```ts
+// server/utils/pedidos.ts (or server/utils/types.ts)
+export interface Pedido {
+  _id: any;
+  numero: string;
+  status: string;
+}
+```
+
+# 8) Acceptance Criteria
+
+- `server/api/pedidos.get.ts` exports a default Nitro handler that returns `{ items }` and uses `getDb()`.
+- Hitting `GET /api/pedidos` in `pnpm dev` returns JSON with `{ items }` and supports `q`, `page`, `pageSize`.
+- All tests in `tests/api/pedidos.get.test.ts` pass locally via `pnpm test`.
+
+# 9) Testing Strategy
+
+- Write integration-style tests with Vitest that invoke the handler with stubbed event/context or through a test Nitro instance.
+- Use a test MongoDB database (`NUXT_MONGODB_URI`) and clean up between tests.
+- Avoid trivial UI unit tests; focus on server endpoints and reusable logic.
+
+# 10) Notes / Links
+
+- Reference spec section: <link or section name>
+- Related tasks: <list others>

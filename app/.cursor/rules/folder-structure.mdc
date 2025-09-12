@@ -1,0 +1,25 @@
+---
+description: Frontend folder structure (Nuxt app)
+globs: app/**
+alwaysApply: false
+---
+
+# Frontend Folder Structure (Nuxt)
+
+This template uses Nuxt 4 with pages/layouts and Tailwind. Variable and function names in English; inline comments in pt-BR.
+
+Project (relevant app directories):
+
+- `app/pages/` — Route-driven pages. Keep page logic simple; move reusable logic to composables or components.
+- `app/layouts/` — App layouts (default, auth, etc.).
+- `app/components/` — UI components (pure presentation or small logic). Use clear, descriptive names.
+- `app/assets/css/main.css` — Tailwind entry and small helpers.
+- `app/plugins/` (optional) — Client/server plugins; keep minimal.
+- `app/middleware/` (optional) — Route middleware (navigation guards).
+
+Conventions:
+
+- JS SFCs (no TS in components/pages).
+- Keep global state in Pinia stores under `stores/` (either `app/stores/` if using srcDir, or root `stores/`).
+- Use `useFetch()` to call server endpoints; do not access MongoDB from the client.
+- Keep components small; extract repeated UI into base components.

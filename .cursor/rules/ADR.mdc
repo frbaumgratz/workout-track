@@ -1,0 +1,121 @@
+---
+description: Architecture Decision Records (English)
+globs:
+alwaysApply: false
+---
+
+# Architecture Decision Log
+
+<!--
+INVARIANTS
+- Keep this exact file structure and headings.
+- ADR headings: "## ADR-XXXX - <Title>" (4-digit zero-padded ID)
+- Status: Proposed | Accepted | Superseded
+- Date format: YYYY-MM-DD
+- Append new entries at the END of the file
+- Index table between markers must be sorted by ID desc (newest first)
+- Each ADR must include: Date, Status, Owner, Context, Decision, Consequences
+- Include anchor `<a id="adr-XXXX"></a>` under the heading
+-->
+
+## Index
+
+<!-- BEGIN:ADR_INDEX -->
+
+| ID   | Title                                            | Date       | Status   | Supersedes | Superseded by |
+| ---- | ------------------------------------------------ | ---------- | -------- | ---------- | ------------- |
+| 0003 | [Database: MongoDB Atlas](#adr-0003)             | 2025-09-01 | Accepted | -          | -             |
+| 0002 | [App in JS; TS in Config](#adr-0002)             | 2025-09-01 | Accepted | -          | -             |
+| 0001 | [Base Template with Nuxt 4](#adr-0001)           | 2025-09-01 | Accepted | -          | -             |
+
+<!-- END:ADR_INDEX -->
+
+---
+
+## New ADR Template (copy for new entries)
+
+```
+## ADR-XXXX - <Title>
+<a id="adr-XXXX"></a>
+**Date**: YYYY-MM-DD
+**Status**: Proposed | Accepted | Superseded
+**Owner**: <Name>
+
+### Context
+<Problem and motivation in 1–3 sentences>
+
+### Alternatives
+<Options considered and why rejected>
+
+### Decision
+<Single clear, testable decision>
+
+### Consequences
+Pros, Cons/risks, Supersedes (if any), Superseded by (if any)
+```
+
+---
+
+## ADR-0001 - Base Template with Nuxt 4
+<a id="adr-0001"></a>
+**Date**: 2025-09-01  
+**Status**: Accepted  
+**Owner**: AI Agent
+
+### Context
+We need a reusable template for new front-end projects to standardize tools and speed up bootstrapping.
+
+### Alternatives
+- Standalone boilerplates copied per project: leads to drift and staleness
+- Large multi-stack monorepo: adds unnecessary complexity for a base template
+
+### Decision
+Adopt Nuxt 4 with Nitro, Tailwind, Pinia, VueUse, and Nuxt Icon as the base, with a simple structure (layouts/pages) and basic CI.
+
+### Consequences
+- Pros: standardization, consistent DX, fast start  
+- Cons/risks: base modules might not cover every use case
+
+---
+
+## ADR-0002 - App in JS; TS in Config
+<a id="adr-0002"></a>
+**Date**: 2025-09-01  
+**Status**: Accepted  
+**Owner**: AI Agent
+
+### Context
+The team prefers plain JavaScript day-to-day; we want simplicity in the app while keeping type-safety in config/build.
+
+### Alternatives
+- TypeScript everywhere: higher learning curve  
+- JavaScript only: lose types in configuration and tooling integrations
+
+### Decision
+Use JavaScript in components/pages. Keep TypeScript for configuration files and server utilities where it adds clarity.
+
+### Consequences
+- Pros: less friction for devs, preserves tooling benefits  
+- Cons/risks: fewer type checks in the app layer
+
+---
+
+## ADR-0003 - Database: MongoDB Atlas
+<a id="adr-0003"></a>
+**Date**: 2025-09-01  
+**Status**: Accepted  
+**Owner**: AI Agent
+
+### Context
+We need a managed, scalable database the team is familiar with.
+
+### Alternatives
+- Managed Postgres (RDS/Supabase): great, but our stack prioritizes document models
+- Firestore: solid, but our requirements prefer the MongoDB ecosystem
+
+### Decision
+Use MongoDB Atlas. Connect via `NUXT_MONGODB_URI` on the server (Nitro) using the official driver or Mongoose. Expose data to the client through `server/api/*` routes.
+
+### Consequences
+- Pros: managed service, high availability, flexible model  
+- Cons/risks: cost per usage, attention to indexes and read/write limits

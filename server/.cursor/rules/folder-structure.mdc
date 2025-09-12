@@ -1,0 +1,18 @@
+---
+description: Backend folder structure (Nuxt Nitro)
+globs: server/**
+alwaysApply: false
+---
+
+# Backend Folder Structure (Nitro)
+
+- `server/api/` — HTTP endpoints (H3 handlers). Use method suffix: `.get.ts`, `.post.ts`, etc.
+- `server/utils/` — Reusable server utilities (e.g., `mongo.ts`). Prefer small, focused modules.
+- `server/middleware/` — H3 event middleware (auth, logging, rate limiting) if needed.
+- `server/plugins/` — Nitro plugins (initialize services). Keep minimal.
+
+Conventions:
+
+- Only server code here (never import these from client code).
+- Validate input (query/body) defensively.
+- Access MongoDB via the shared util; avoid instantiating clients in handlers.

@@ -1,0 +1,224 @@
+---
+alwaysApply: true
+---
+
+# Frontend Development Workflow
+
+## Architecture
+
+This project uses Nuxt 4 with Tailwind CSS and Pinia. The app follows a component-based architecture with clear separation between presentation (components), page orchestration (pages/layouts), and data access via server API routes (`server/api/*`). Client code never touches MongoDB directly; it uses `useFetch()`/`useAsyncData()` to call backend endpoints.
+
+## Primary Rules
+
+### Components and Templates
+
+- Prefer small, focused components under `app/components/`.
+- Reuse before reinventing; extract repeated UI into base components.
+- Keep page logic thin; push reusable logic to composables.
+- Use Tailwind utilities; avoid deep custom CSS. Keep `app/assets/css/main.css` minimal.
+
+### Theme and Design Tokens
+
+- Customize design tokens in `tailwind.config.ts` (colors, spacing, fonts).
+- Use CSS variables (e.g., in `:root`) when needed and reference them in Tailwind.
+- Support dark mode via Tailwind’s `dark` variant or class strategy.
+- Prefer utility classes over global styles; avoid leaking styles across components.
+
+### User Experience (UX)
+
+- **Always** adopt the perspective of a critical user
+- Always show loading and empty states (skeletons or placeholders).
+- Display clear error messages near the failing context.
+- Ensure the app is self-explanatory; label actions and states.
+- Test on mobile and large screens; use responsive Tailwind utilities.
+- Consider using `100dvh` for full-height layouts on mobile when needed.
+
+### Code Quality
+
+- Balance clarity with speed; prioritize readability.
+- Add comments where logic is complex
+- Variable/function names in English; comments in pt-BR.
+- Keep functions/components single-responsibility and short.
+- Handle errors explicitly; avoid silent failures.
+
+### State Management
+
+- Use Pinia for cross-route/global state; keep stores cohesive and focused.
+- Prefer local component state for ephemeral UI.
+- Derive state with `computed` rather than storing duplicates.
+
+### Performance Optimization
+
+- Avoid unnecessary reactivity; keep reactive data minimal.
+- Use `computed` and `watchEffect` thoughtfully.
+- Lazy-load heavy components with dynamic imports when appropriate.
+
+### Authorization
+
+- Use route middleware for protected pages.
+- Show loading indicators during auth checks.
+- Fail closed: redirect unauthenticated users to sign-in.
+
+## Workflow
+
+### 0. Planning Phase
+
+Before starting, create a comprehensive to-do list following this exact process:
+
+- Understand the feature requirements
+- Identify affected components and pages
+- List all necessary UI components
+- Plan the data flow and state management
+- Consider edge cases and error states
+
+### 1. Design Analysis
+
+- Reuse existing components/composables where possible.
+- Define responsive behavior with Tailwind utilities.
+
+### 2. Component Development
+
+```vue
+<!-- app/components/features/NewFeature.vue -->
+<template>
+  <section class="p-4">
+    <div
+      v-if="status === 'loading'"
+      class="h-8 rounded bg-gray-200 animate-pulse"
+    />
+    <p v-else-if="status === 'error'" class="text-red-600 text-sm">
+      Failed to load data.
+    </p>
+    <p v-else-if="!items.length" class="text-gray-500 text-sm">
+      No data available
+    </p>
+    <ul v-else class="space-y-2">
+      <li v-for="item in items" :key="item._id" class="p-3 border rounded">
+        {{ item.name }}
+      </li>
+    </ul>
+  </section>
+</template>
+
+<script setup>
+const status = ref("loading");
+const items = ref([]);
+const { data, pending, error } = await useFetch("/api/items");
+watchEffect(() => {
+  status.value = pending.value ? "loading" : error.value ? "error" : "success";
+  if (data.value) items.value = data.value.items || [];
+});
+</script>
+```
+
+### 3. Server API Integration
+
+```ts
+// app/composables/useUsers.ts
+export function useUsers() {
+  const { data, pending, error, refresh } = useFetch("/api/users");
+  return { data, pending, error, refresh };
+}
+```
+
+### 4. Form Handling
+
+```vue
+<template>
+  <form @submit.prevent="onSubmit" class="space-y-3">
+    <label class="block">
+      <span class="text-sm">Name</span>
+      <input
+        v-model.trim="name"
+        required
+        class="mt-1 w-full border rounded px-3 py-2"
+      />
+    </label>
+    <button
+      type="submit"
+      :disabled="submitting"
+      class="px-4 py-2 bg-black text-white rounded disabled:opacity-50"
+    >
+      <span v-if="submitting">Saving...</span>
+      <span v-else>Submit</span>
+    </button>
+  </form>
+  <p v-if="message" class="text-sm mt-2">{{ message }}</p>
+</template>
+
+<script setup>
+const name = ref("");
+const submitting = ref(false);
+const message = ref("");
+async function onSubmit() {
+  submitting.value = true;
+  try {
+    const { data, error } = await useFetch("/api/users", {
+      method: "POST",
+      body: { name: name.value },
+    });
+    if (error.value) throw error.value;
+    message.value = "Saved successfully";
+  } catch (e) {
+    message.value = "Failed to save";
+  } finally {
+    submitting.value = false;
+  }
+}
+</script>
+```
+
+### 5. Testing
+
+- Ensure the app compiles and runs (`pnpm dev`).
+- Add/adjust unit and integration tests under `tests/` where applicable (`pnpm test`).
+- Manually verify loading/empty/error states and responsive behavior.
+
+## Common Patterns
+
+### Protected Route Pattern
+
+```ts
+// app/middleware/auth.global.ts
+export default defineNuxtRouteMiddleware((to) => {
+  const isAuthenticated = useState("isAuthenticated", () => false);
+  if (to.meta.requiresAuth && !isAuthenticated.value) {
+    return navigateTo("/signin");
+  }
+});
+```
+
+### Navigation Rules
+
+```vue
+<NuxtLink
+  to="/dashboard"
+  class="inline-flex items-center px-3 py-2 border rounded"
+>Go to Dashboard</NuxtLink>
+```
+
+```ts
+// Programmatic
+await navigateTo("/dashboard");
+```
+
+### Loading/Skeleton Pattern
+
+```vue
+<div class="space-y-2">
+  <div class="h-4 bg-gray-200 rounded animate-pulse" />
+  <div class="h-4 bg-gray-200 rounded animate-pulse" />
+  <div class="h-4 bg-gray-200 rounded animate-pulse" />
+</div>
+```
+
+## Debugging Checklist
+
+1. Check browser console for errors and warnings.
+2. Verify runtime config.
+3. Inspect network requests from `useFetch()` and server responses.
+4. Confirm route middleware/auth flows.
+5. Validate component props and reactive state.
+6. Watch for reactivity pitfalls (mutating non-reactive objects, missing refs).
+7. Check for race conditions
+8. Check server logs for API errors.

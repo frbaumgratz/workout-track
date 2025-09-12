@@ -1,0 +1,162 @@
+---
+description: Backend development workflow (Nitro + MongoDB)
+globs: server/**
+alwaysApply: false
+---
+
+# Backend Development Workflow
+
+## Architecture
+
+Nuxt 4 with Nitro provides the server runtime. Endpoints live under `server/api/` using file-based routing with method suffixes (e.g., `users.get.ts`, `users.post.ts`). MongoDB Atlas is accessed via the official driver using a single shared client in `~/server/utils/mongo`. Handlers are thin: they parse/validate input, call small utilities/services, and return predictable JSON.
+
+Key points:
+
+- Use `~/server/utils/mongo` to obtain a `Db` instance via `getDb()`; never instantiate `MongoClient` inside handlers.
+- Keep server-only code inside `server/*` and do not import it into client-side code.
+- Follow consistent error shaping per ADR: set status with `setResponseStatus(event, code)` and return `{ error, message }` on failure.
+
+## Testing
+
+Adopt a test-first mindset. Prefer high-value integration-style tests that exercise route handlers and utilities together, while keeping unit tests for critical logic.
+
+- Runner: Vitest (`pnpm test`).
+- Location: `tests/` (JavaScript by default). Keep tests close to features when practical.
+- Data: Use a test database (configure `NUXT_MONGODB_URI` to point to a test DB). Clean up between tests.
+- Scope: Validate end-to-end flows (e.g., create → update → delete) by asserting returned payloads and database state.
+- Avoid hitting production resources. Do not rely on external services without explicit test doubles.
+
+## Development Principles
+
+- 🪟 No broken windows: keep code clean as you go.
+- 🔄 DRY: extract shared logic into `server/utils/*`.
+- 🌐 Leave it better than you found it: improve clarity and naming.
+- 🔁 Write code once: prefer reusable utilities over duplication.
+- 🧪 Test First: write/adjust tests before implementing features.
+- 👨‍💻 SOLID: small, single-purpose functions and modules.
+- 🧩 Thin handlers: push complex logic into utilities/services.
+- ✅ Validate input: fail fast with clear messages and proper status codes.
+
+## Development Rules
+
+- Routes: place files in `server/api/` using method suffixes (e.g., `items.get.ts`, `items.post.ts`).
+- Input: use `getQuery(event)` for query params and `await readBody(event)` for JSON body. Validate required fields and types; return 400 on invalid input.
+- Database: access MongoDB only via `~/server/utils/mongo` using `getDb()`. Reuse the shared client; never instantiate a new client per request.
+- Errors: on failure, set status with `setResponseStatus(event, code)` and return `{ error, message }`. Do not leak stack traces.
+- Responses: return JSON objects with predictable keys (e.g., `{ items }`, `{ id }`). Avoid returning raw arrays.
+- Server-only: never import `server/*` modules from client code.
+- Configuration: secrets via environment variables (`NUXT_MONGODB_URI`). Never hardcode secrets.
+- Types: application code in JavaScript; TypeScript is allowed in configs and server utilities where it adds clarity.
+
+## Workflow
+
+0. Before starting, create a to-do list for yourself, following this exact process.
+1. Identify or create tests in `tests/` that represent the user flow you are implementing or changing. If you cannot find any relevant test files, ask clarification from the user.
+2. Update/add tests first, defining expected inputs, outputs, and error cases.
+3. Implement the handler in `server/api/` and supporting utilities in `server/utils/` following principles and rules above.
+4. Run tests (`pnpm test`) and iterate until all pass. Do not stop until all tests are passing.
+5. Validate that responses follow the agreed shape and that input validation is enforced.
+6. Document significant architectural decisions in `server/.cursor/rules/ADR.mdc`.
+
+## Common Patterns
+
+### GET endpoint
+
+```ts
+// server/api/users.get.ts
+export default defineEventHandler(async (event) => {
+  const { q } = getQuery(event);
+  try {
+    const db = await getDb();
+    const users = await db
+      .collection("users")
+      .find(q ? { name: { $regex: String(q), $options: "i" } } : {})
+      .toArray();
+    return { items: users };
+  } catch (err) {
+    setResponseStatus(event, 500);
+    return { error: "INTERNAL_ERROR", message: "Failed to fetch users" };
+  }
+});
+```
+
+### POST endpoint
+
+```ts
+// server/api/users.post.ts
+export default defineEventHandler(async (event) => {
+  const body = await readBody(event);
+  if (!body || typeof body.name !== "string") {
+    setResponseStatus(event, 400);
+    return { error: "VALIDATION_ERROR", message: 'Missing "name"' };
+  }
+  try {
+    const db = await getDb();
+    const { insertedId } = await db
+      .collection("users")
+      .insertOne({ name: body.name });
+    return { id: insertedId };
+  } catch (err) {
+    setResponseStatus(event, 500);
+    return { error: "INTERNAL_ERROR", message: "Failed to create user" };
+  }
+});
+```
+
+### Utility/service module
+
+```ts
+// server/utils/users.ts
+export async function findUsersByEmail(db, email) {
+  return db.collection("users").find({ email }).toArray();
+}
+```
+
+### Shared Mongo client usage
+
+```ts
+// server/utils/mongo.ts (already provided)
+// import { getDb } from '~/server/utils/mongo'
+```
+
+### Error handling shape
+
+```ts
+// Inside any handler
+try {
+  // ... logic
+} catch (err) {
+  setResponseStatus(event, 500);
+  return { error: "INTERNAL_ERROR", message: "Something went wrong" };
+}
+```
+
+## Guardrails
+
+- NEVER create a new `MongoClient` inside request handlers; always reuse the shared client.
+- NEVER log secrets or include them in responses.
+- NEVER import `server/*` modules into client-side components.
+- Do not block the event loop with long-running synchronous work.
+- Prefer small, composable utilities over large handlers.
+- NEVER run any deploy commands.
+
+## Slack: mensagem curta (PT‑BR) após mudanças
+
+Obrigatório após toda mudança de feature existente ou correção de bug (não se aplica a funcionalidades totalmente novas).
+
+- O que incluir sempre:
+  - O problema ou requisito original.
+  - O que mudamos para corrigir/adaptar.
+  - Como testar (passos rápidos ou cenários principais).
+  - A branch do Git onde está a mudança.
+
+Template (copiar/colar no Slack):
+
+```
+[Atualização] <resumo curto>
+
+- O que era: <qual era o problema/requisito?>
+- O que mudou: <o que alteramos para corrigir/adaptar?>
+- Como testar: <passos rápidos / link para teste>
+- Branch: <nome-da-branch> (<link, se aplicável>)
+```

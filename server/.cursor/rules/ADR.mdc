@@ -1,0 +1,134 @@
+---
+description: Log of all the key backend architectural decisions.
+globs: server/**
+alwaysApply: false
+---
+
+# Architecture Decision Log
+
+<!--
+ADR_AGENT_PROTOCOL v1.0
+
+You (the agent) manage this file as the single source of truth for all ADRs.
+
+INVARIANTS
+- Keep this exact file structure and headings.
+- All ADR entries use H2 headings: "## ADR-XXXX — <Title>" (4-digit zero-padded ID).
+- Allowed Status values: Proposed | Accepted | Superseded
+- Date format: YYYY-MM-DD
+- New entries must be appended to the END of the file.
+- The Index table between the INDEX markers must always reflect the latest state and be sorted by ID desc (newest on top).
+- Each ADR MUST contain: Date, Status, Owner, Context, Decision, Consequences.
+- Each ADR must include an explicit anchor `<a id="adr-XXXX"></a>` so links remain stable.
+
+HOW TO ADD A NEW ADR
+1) Read the whole file.
+2) Compute next ID:
+   - Scan for headings matching: ^## ADR-(\d{4}) — .+$
+   - next_id = (max captured number) + 1, left-pad to 4 digits.
+3) Create a new ADR section using the “New ADR Entry Template” below.
+   - Place it AFTER the last ADR section in the file.
+   - Add an `<a id="adr-XXXX"></a>` line immediately below the heading.
+4) Update the Index (between the INDEX markers):
+   - Insert/replace the row for this ADR keeping the table sorted by ID descending.
+   - Title in the Index MUST link to the anchor: [<Title>](#adr-XXXX)
+   - If this ADR supersedes another: set “Supersedes” in this row, and update that older ADR:
+       a) Change its Status to “Superseded”
+       b) Add “Superseded by: ADR-XXXX” in its Consequences block
+       c) Update the older ADR’s Index row “Superseded by” column to ADR-XXXX
+5) Validate before saving:
+   - Exactly one heading exists for ADR-XXXX
+   - All required fields are present and non-empty
+   - Index contains a row for ADR-XXXX and remains properly sorted
+6) Concurrency resolution:
+   - If a merge conflict or duplicate ID is detected after reading: recompute next_id from the current file state, rename your heading, anchor, and Index row accordingly, and retry once.
+
+COMMIT MESSAGE SUGGESTION
+- "ADR-XXXX: <Short Title> — <Status>"
+
+END ADR_AGENT_PROTOCOL
+-->
+
+## Index
+
+<!-- BEGIN:ADR_INDEX -->
+
+| ID   | Title                                                    | Date       | Status   | Supersedes | Superseded by |
+| ---- | -------------------------------------------------------- | ---------- | -------- | ---------- | ------------- |
+| 0203 | [Error handling and response shape](#adr-0203)           | 2025-09-01 | Accepted | —          | —             |
+| 0202 | [Route conventions (REST-ish, method suffix)](#adr-0202) | 2025-09-01 | Accepted | —          | —             |
+| 0201 | [Database: MongoDB Atlas via official driver](#adr-0201) | 2025-09-01 | Accepted | —          | —             |
+
+<!-- END:ADR_INDEX -->
+
+---
+
+## ADR-0201 — Database: MongoDB Atlas via official driver
+
+<a id="adr-0201"></a>
+**Date**: 2025-09-01
+**Status**: Accepted
+**Owner**: AI Agent
+
+### Context
+
+We need a managed database for the backend with predictable connections in a serverless/Nitro context, using a stack the team knows well.
+
+### Decision
+
+Use the official `mongodb` driver with a shared connection utility (`server/utils/mongo.ts`). Connection string in `NUXT_MONGODB_URI`. Reuse the client across requests to avoid reconnect storms.
+
+### Consequences
+
+- Pros: Familiar document model, managed Atlas service, efficient pooled connections, single shared client avoids resource churn
+- Cons/risks: Requires careful secret handling and index management; incorrect client reuse can cause leaked sockets or memory pressure
+- Supersedes: —
+- Superseded by: —
+
+---
+
+## ADR-0202 — Route conventions (REST-ish, method suffix)
+
+<a id="adr-0202"></a>
+**Date**: 2025-09-01
+**Status**: Accepted
+**Owner**: AI Agent
+
+### Context
+
+We want consistent, discoverable HTTP endpoints in Nitro with minimal boilerplate and a clear mapping from HTTP method to file.
+
+### Decision
+
+Place endpoints in `server/api/` and use filename method suffix (e.g., `users.get.ts`, `users.post.ts`). Return JSON payloads. Keep handlers thin and delegate logic to utilities.
+
+### Consequences
+
+- Pros: Predictable routing, easy onboarding, thin handlers encourage separation of concerns
+- Cons/risks: File-based routing may constrain advanced patterns; duplication across method files if not factored into utilities
+- Supersedes: —
+- Superseded by: —
+
+---
+
+## ADR-0203 — Error handling and response shape
+
+<a id="adr-0203"></a>
+**Date**: 2025-09-01
+**Status**: Accepted
+**Owner**: AI Agent
+
+### Context
+
+We need a consistent error strategy for Nitro routes that avoids leaking internals while giving clients predictable structures to handle.
+
+### Decision
+
+On error, set HTTP status with `setResponseStatus(event, code)` and return `{ error, message }`. Do not leak stack traces in responses. Log server-side as needed.
+
+### Consequences
+
+- Pros: Uniform client handling, safer responses, easier monitoring and alerting
+- Cons/risks: Less debug detail in client responses; requires disciplined server-side logging to diagnose issues
+- Supersedes: —
+- Superseded by: —

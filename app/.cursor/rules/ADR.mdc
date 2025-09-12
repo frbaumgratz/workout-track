@@ -1,0 +1,128 @@
+---
+description: Architectural Decision Records
+globs: app/**
+alwaysApply: false
+---
+
+# Architecture Decision Log
+
+<!--
+ADR_AGENT_PROTOCOL v1.0
+
+You (the agent) manage this file as the single source of truth for all ADRs.
+
+INVARIANTS
+- Keep this exact file structure and headings.
+- All ADR entries use H2 headings: "## ADR-XXXX — <Title>" (4-digit zero-padded ID).
+- Allowed Status values: Proposed | Accepted | Superseded
+- Date format: YYYY-MM-DD
+- New entries must be appended to the END of the file.
+- The Index table between the INDEX markers must always reflect the latest state and be sorted by ID desc (newest on top).
+- Each ADR MUST contain: Date, Status, Owner, Context, Decision, Consequences.
+- Each ADR must include an explicit anchor `<a id="adr-XXXX"></a>` so links remain stable.
+
+HOW TO ADD A NEW ADR
+1) Read the whole file.
+2) Compute next ID:
+   - Scan for headings matching: ^## ADR-(\d{4}) — .+$
+   - next_id = (max captured number) + 1, left-pad to 4 digits.
+3) Create a new ADR section using the “New ADR Entry Template” below.
+   - Place it AFTER the last ADR section in the file.
+   - Add an `<a id="adr-XXXX"></a>` line immediately below the heading.
+4) Update the Index (between the INDEX markers):
+   - Insert/replace the row for this ADR keeping the table sorted by ID descending.
+   - Title in the Index MUST link to the anchor: [<Title>](#adr-XXXX)
+   - If this ADR supersedes another: set “Supersedes” in this row, and update that older ADR:
+       a) Change its Status to “Superseded”
+       b) Add “Superseded by: ADR-XXXX” in its Consequences block
+       c) Update the older ADR’s Index row “Superseded by” column to ADR-XXXX
+5) Validate before saving:
+   - Exactly one heading exists for ADR-XXXX
+   - All required fields are present and non-empty
+   - Index contains a row for ADR-XXXX and remains properly sorted
+6) Concurrency resolution:
+   - If a merge conflict or duplicate ID is detected after reading: recompute next_id from the current file state, rename your heading, anchor, and Index row accordingly, and retry once.
+
+COMMIT MESSAGE SUGGESTION
+- "ADR-XXXX: <Short Title> — <Status>"
+
+END ADR_AGENT_PROTOCOL
+-->
+
+## Index
+
+<!-- BEGIN:ADR_INDEX -->
+
+| ID   | Title                                             | Date       | Status   |
+| ---- | ------------------------------------------------- | ---------- | -------- |
+| 0103 | [Styling with Tailwind CSS](#adr-0103)            | 2025-09-01 | Accepted |
+| 0102 | [State with Pinia, composables for UI](#adr-0102) | 2025-09-01 | Accepted |
+| 0101 | [App language: JavaScript SFCs](#adr-0101)        | 2025-09-01 | Accepted |
+
+<!-- END:ADR_INDEX -->
+
+---
+
+## ADR-0101 — App language: JavaScript SFCs
+
+<a id="adr-0101"></a>
+**Date**: 2025-09-01
+**Status**: Accepted
+**Owner**: AI Agent
+
+### Context
+
+Team prefers plain JavaScript for app code; we still want typed configs.
+
+### Decision
+
+Use JavaScript for all Vue SFCs (no `lang="ts"`). Keep TypeScript for configuration and server utilities when it adds clarity.
+
+### Consequences
+
+- Pros: lower friction, faster onboarding.
+- Cons: fewer type checks in components.
+
+---
+
+## ADR-0102 — State with Pinia, composables for UI
+
+<a id="adr-0102"></a>
+**Date**: 2025-09-01
+**Status**: Accepted
+**Owner**: AI Agent
+
+### Context
+
+We need a simple and standard way to manage app-wide state.
+
+### Decision
+
+Use Pinia for global state (auth, settings, user profile). Prefer local component state and small composables for view-specific logic. Avoid over-centralizing ephemeral UI state.
+
+### Consequences
+
+- Pros: predictable patterns, easy testing and reuse.
+- Cons: must avoid store bloat; keep stores focused.
+
+---
+
+## ADR-0103 — Styling with Tailwind CSS
+
+<a id="adr-0103"></a>
+**Date**: 2025-09-01
+**Status**: Accepted
+**Owner**: AI Agent
+
+### Context
+
+We want consistent design primitives and rapid iteration.
+
+### Decision
+
+Use Tailwind CSS utilities as the default styling approach. Keep global CSS minimal (resets and small helpers). Extend design tokens via `tailwind.config.ts`.
+
+### Consequences
+
+- Pros: speed, consistency, fewer CSS cascade issues.
+- Cons: utility classes in templates can grow; use small components to encapsulate.
