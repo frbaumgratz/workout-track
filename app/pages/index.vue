@@ -63,9 +63,11 @@ import SummarySidebar from '../components/SummarySidebar.vue'
 import { useActivities } from '../composables/useActivities'
 import { useEntries } from '../composables/useEntries'
 import { useAppEvents } from '../composables/useAppEvents'
+import { useToast } from '../composables/useToast'
 
 const { items: activities, fetchActivities, createActivity, deleteActivity, updateActivity } = useActivities()
 const { items: entries, fetchRange, upsert, remove, removeActivityFromEntries } = useEntries()
+const { success, error: showError } = useToast()
 
 const entriesLoading = ref(false)
 const selectedDateKey = ref('')
@@ -114,7 +116,12 @@ async function removeActivity(id) {
   const a = activities.value.find((x) => x._id === id)
   if (!a) return
   if (!confirm(`Delete activity "${a.name}" from the master list? This will not change past days.`)) return
-  await deleteActivity(id)
+  try {
+    await deleteActivity(id)
+    success(`Deleted "${a.name}" from master list`)
+  } catch (e) {
+    showError('Failed to delete activity')
+  }
 }
 
 function startEdit(a) {
