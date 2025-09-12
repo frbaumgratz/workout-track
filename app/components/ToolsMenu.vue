@@ -76,6 +76,7 @@
 
 <script setup>
 import { useAppEvents } from '../composables/useAppEvents'
+import { useToast } from '../composables/useToast'
 
 const activities = ref([])
 const markedNames = ref([])
@@ -86,6 +87,7 @@ const message = ref('')
 const dialogRef = ref()
 
 const { emitRefreshEntries } = useAppEvents()
+const { success, error: showError } = useToast()
 
 function toKeyFmt(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`
@@ -124,8 +126,10 @@ async function clean() {
     await $fetch('/api/entries-activity', { method: 'DELETE', query: { name: selectedName.value, fromKey: fromKey.value, toKey: toKey.value } })
     message.value = 'Removed from selected range.'
     emitRefreshEntries()
+    success('Removed from selected range')
   } catch (e) {
     message.value = 'Failed to clean.'
+    showError('Failed to clean')
   }
 }
 
@@ -169,8 +173,10 @@ async function clearRange() {
     await $fetch('/api/entries.clear', { method: 'DELETE', query: { fromKey: clearFromKey.value, toKey: clearToKey.value } })
     clearMsg.value = 'Cleared entries in range.'
     emitRefreshEntries()
+    success('Cleared entries in range')
   } catch (e) {
     clearMsg.value = 'Failed to clear.'
+    showError('Failed to clear')
   }
 }
 </script>

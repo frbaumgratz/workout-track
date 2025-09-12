@@ -13,6 +13,7 @@
     <main class="container mx-auto px-4 py-8">
       <slot />
     </main>
+    <ToastHost />
   </div>
 
 </template>
@@ -21,4 +22,5 @@
 const appConfig = useRuntimeConfig()
 const appName = appConfig.public.appName
 import ToolsMenu from '../components/ToolsMenu.vue'
+import ToastHost from '../components/ToastHost.vue'
 </script>
