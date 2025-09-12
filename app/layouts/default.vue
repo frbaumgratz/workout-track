@@ -6,6 +6,7 @@
         <nav class="flex items-center gap-4 text-sm">
           <NuxtLink to="/" class="hover:underline">Início</NuxtLink>
           <a href="https://nuxt.com" target="_blank" class="hover:underline">Documentação</a>
+          <ToolsMenu />
         </nav>
       </div>
     </header>
@@ -19,4 +20,5 @@
 <script setup>
 const appConfig = useRuntimeConfig()
 const appName = appConfig.public.appName
+import ToolsMenu from '../components/ToolsMenu.vue'
 </script>

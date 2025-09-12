@@ -2,7 +2,7 @@
 // - Comentários em pt-BR
 // - Nomes e retornos em inglês
 
-import { H3Event, setResponseStatus } from 'h3'
+import { H3Event, setResponseStatus, getQuery } from 'h3'
 import { getDb } from '../utils/mongo'
 
 export default defineEventHandler(async (event: H3Event) => {

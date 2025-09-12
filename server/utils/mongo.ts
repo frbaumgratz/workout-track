@@ -20,8 +20,8 @@ export async function getMongoClient() {
     throw new Error('Missing NUXT_MONGODB_URI environment variable')
   }
 
-  // Reutiliza instância existente
-  if (client && client.topology && client.topology.isConnected()) {
+  // Reutiliza instância existente (MongoDB Driver v6 não expõe topology.isConnected)
+  if (client) {
     return client
   }
 

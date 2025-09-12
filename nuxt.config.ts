@@ -27,7 +27,8 @@ export default defineNuxtConfig({
     apiSecret: process.env.NUXT_API_SECRET || '',
     public: {
       appName: process.env.NUXT_PUBLIC_APP_NAME || 'Nuxt Template',
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',
+      timeZone: process.env.NUXT_PUBLIC_TIME_ZONE || 'America/Sao_Paulo'
     }
   },
 
