@@ -40,12 +40,15 @@ Sometimes I train twice a day. Over time, it becomes hard to remember what I did
 
 ### 3. Summary Sidebar
 - Always-visible sidebar (or collapsible panel)
-- Displays the total number of times each exercise was performed:
-  - This week
-  - This month
-  - This year
-  - (Optional) per custom date range
-  - Example output: Swimming: 3 times (Week 1), 4 times (Week 2), 7 times (This Month)
+- Displays totals:
+  - Month: days active and total activities
+  - Year-to-date (YTD): days active and total activities (cut-off = end of month in focus)
+- Per-activity: shows "Month x · Year y"
+- Streaks displayed:
+  - Any-activity streak (Month, YTD)
+  - Negative streak (Month, YTD)
+  - Per-activity streak (Month, YTD)
+- Scheduled rest does not count in totals and does not break streaks
 
 ### 4. Customization
 - Ability to define which exercises are tracked
@@ -85,6 +88,8 @@ Sometimes I train twice a day. Over time, it becomes hard to remember what I did
 - **Visual Feedback**:
     - Days change color based on activity status
     - Display completed exercises per day (e.g., badges or icons)
+    - Scheduled rest day: yellow background
+    - Negative streak run (≥ 4 consecutive days without activity/rest): red background
 
 ---
 

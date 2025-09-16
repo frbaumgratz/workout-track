@@ -8,7 +8,9 @@
 - [x] Ability to edit past entries
 
 ## Summary & Stats
-- [ ] Sidebar with weekly/monthly/yearly breakdown
+- [x] Sidebar with monthly + YTD breakdown (days active, total activities)
+- [x] Per-activity counts: "Month x · Year y"
+- [x] Streaks (any, per-activity, negative) for Month and YTD
 - [x] Summary updates in real-time after marking an activity
 
 ## Customization
@@ -18,3 +20,5 @@
 ## UX & Styling
 - [ ] Clean, modern UI using Tailwind CSS v4
 - [x] Responsive layout
+ - [x] Visual highlight for rest day (yellow)
+ - [x] Visual highlight for negative streak runs ≥ 4 days (red)
