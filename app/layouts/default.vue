@@ -1,16 +1,15 @@
 <template>
   <div class="min-h-screen bg-gray-50 text-gray-800">
     <header class="border-b bg-white">
-      <div class="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="mx-auto px-4 py-4 flex items-center justify-between max-w-7xl">
         <NuxtLink to="/" class="font-semibold">{{ appName }}</NuxtLink>
         <nav class="flex items-center gap-4 text-sm">
-          <NuxtLink to="/" class="hover:underline">Início</NuxtLink>
-          <a href="https://nuxt.com" target="_blank" class="hover:underline">Documentação</a>
+
           <ToolsMenu />
         </nav>
       </div>
     </header>
-    <main class="container mx-auto px-4 py-8">
+    <main class="mx-auto px-4 py-8 max-w-[1440px]">
       <slot />
     </main>
     <ToastHost />

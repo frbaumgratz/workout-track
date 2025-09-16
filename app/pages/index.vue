@@ -1,6 +1,6 @@
 <template>
-  <section class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-    <div class="lg:col-span-3">
+  <section class="grid grid-cols-1 lg:grid-cols-5 gap-16">
+    <div class="lg:col-span-4">
       <CalendarGrid :entries="entries" @select="openModal" @month-change="onMonthChange" />
     </div>
     <div class="lg:col-span-1">

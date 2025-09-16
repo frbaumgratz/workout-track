@@ -7,22 +7,31 @@
         <button class="px-2 py-1 border rounded" @click="nextMonth">→</button>
       </div>
     </div>
-    <div class="grid grid-cols-7 gap-1 text-sm">
-      <div v-for="d in weekDays" :key="d" class="text-center text-gray-500 py-1">{{ d }}</div>
+    <div class="grid grid-cols-7 gap-3 text-sm">
+      <div v-for="d in weekDays" :key="d" class="text-center text-gray-500 py-3 font-medium text-base">{{ d }}</div>
       <button
         v-for="cell in cells"
         :key="cell.key"
-        class="aspect-square border rounded p-1 text-left relative hover:bg-gray-50 disabled:opacity-30"
+        class="aspect-square border rounded p-3 text-left relative hover:bg-gray-50 disabled:opacity-30"
+        :class="{
+          'bg-green-50 border-green-200': cell.hasActivities,
+          'bg-white': !cell.hasActivities && cell.monthOffset === 0
+        }"
         :disabled="cell.monthOffset !== 0"
         @click="onSelect(cell.dateIso)"
       >
-        <span class="text-xs absolute top-1 right-1">{{ cell.day }}</span>
-        <div class="mt-4 flex flex-wrap gap-1">
+        <span class="text-base font-semibold absolute top-2 right-2">{{ cell.day }}</span>
+        <div class="mt-7 flex flex-wrap gap-1.5">
           <span
             v-for="badge in cell.badges"
             :key="badge"
-            class="px-1 py-0.5 text-[10px] bg-gray-200 rounded"
+            class="px-2 py-1 text-xs bg-gray-200 rounded-full truncate max-w-full"
+            :title="badge"
           >{{ badge }}</span>
+          <span
+            v-if="cell.totalActivities > cell.badges.length"
+            class="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full"
+          >+{{ cell.totalActivities - cell.badges.length }}</span>
         </div>
       </button>
     </div>
@@ -67,12 +76,15 @@ const cells = computed(() => {
     const d = new Date(firstCell)
     d.setDate(firstCell.getDate() + i)
     const key = toIso(d)
+    const activities = map.get(key) || []
     out.push({
       key,
       dateIso: key,
       day: d.getDate(),
       monthOffset: d.getMonth() - current.value.getMonth(),
-      badges: (map.get(key) || []).slice(0,3)
+      badges: activities.slice(0, 4), // Mostrar até 4 atividades
+      totalActivities: activities.length,
+      hasActivities: activities.length > 0
     })
   }
   return out

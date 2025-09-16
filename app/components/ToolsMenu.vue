@@ -61,10 +61,10 @@
                 @click="clearRange"
               >Clear range</button>
               <button
-                class="px-3 py-2 border rounded"
-                @click="presetMonth"
-                title="Use current month"
-              >Current month</button>
+                class="px-3 py-2 bg-red-600 text-white rounded"
+                @click="clearCurrentMonth"
+                title="Clear all activities from current month"
+              >Clear Current Month</button>
               <p v-if="clearMsg" class="text-sm">{{ clearMsg }}</p>
             </div>
           </div>
@@ -177,6 +177,30 @@ async function clearRange() {
   } catch (e) {
     clearMsg.value = 'Failed to clear.'
     showError('Failed to clear')
+  }
+}
+
+async function clearCurrentMonth() {
+  const now = new Date()
+  const currentMonth = now.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })
+  
+  if (!confirm(`Tem certeza que deseja limpar todas as atividades de ${currentMonth}?`)) return
+  
+  // Close dialog immediately after confirmation so user sees the calendar
+  dialogRef.value?.close()
+  
+  try {
+    // Get current month date range
+    const fromKey = toKeyFmt(new Date(now.getFullYear(), now.getMonth(), 1))
+    const toKey = toKeyFmt(new Date(now.getFullYear(), now.getMonth() + 1, 0))
+    
+    await $fetch('/api/entries.clear', { method: 'DELETE', query: { fromKey, toKey } })
+    clearMsg.value = `Cleared all activities from ${currentMonth}.`
+    emitRefreshEntries()
+    success(`Cleared all activities from ${currentMonth}`)
+  } catch (e) {
+    clearMsg.value = 'Failed to clear current month.'
+    showError('Failed to clear current month')
   }
 }
 </script>
