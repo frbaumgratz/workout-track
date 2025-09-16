@@ -4,7 +4,13 @@
       <CalendarGrid :entries="entries" @select="openModal" @month-change="onMonthChange" />
     </div>
     <div class="lg:col-span-1">
-      <SummarySidebar :entries="entries" :loading="entriesLoading" />
+      <SummarySidebar
+        :entries-month="entries"
+        :entries-year="ytdEntries"
+        :current-month="currentMonth"
+        :loading-month="entriesLoading"
+        :loading-year="ytdLoading"
+      />
       <div class="mt-6">
         <div class="flex items-center justify-between">
           <h3 class="font-medium mb-2">Activities</h3>
@@ -50,7 +56,13 @@
     </form>
     <div class="p-4 space-y-3">
       <p class="text-sm text-gray-600">{{ selectedDateKey }}</p>
-      <div class="flex flex-wrap gap-2">
+      <div class="flex items-center gap-3">
+        <label class="inline-flex items-center gap-2">
+          <input type="checkbox" v-model="restDay" />
+          <span>Rest day (scheduled)</span>
+        </label>
+      </div>
+      <div class="flex flex-wrap gap-2" :class="{ 'opacity-50 pointer-events-none': restDay }">
         <label v-for="name in dayActivityOptions" :key="name" class="inline-flex items-center gap-2 border rounded px-2 py-1">
           <input type="checkbox" :value="name" v-model="selectedActivities" />
           <span>{{ name }}</span>
@@ -73,13 +85,18 @@ import { useAppEvents } from '../composables/useAppEvents'
 import { useToast } from '../composables/useToast'
 
 const { items: activities, fetchActivities, createActivity, deleteActivity, updateActivity } = useActivities()
+// Month entries instance
 const { items: entries, fetchRange, upsert, remove, removeActivityFromEntries } = useEntries()
+// Year-to-date entries instance (separate to avoid clobbering month state)
+const { items: ytdEntries, fetchRange: fetchYtdRange } = useEntries()
 const { success, error: showError } = useToast()
 
 const entriesLoading = ref(false)
+const ytdLoading = ref(false)
 const activitiesVisible = useState('activitiesVisible', () => false)
 const selectedDateKey = ref('')
 const selectedActivities = ref([])
+const restDay = ref(false)
 const modalRef = ref()
 const newActivity = ref('')
 const editingId = ref('')
@@ -97,13 +114,14 @@ function openModal(dateKey) {
   selectedDateKey.value = dateKey
   const e = entries.value.find((x) => x.dateKey === dateKey)
   selectedActivities.value = e?.activities ? [...e.activities] : []
+  restDay.value = Boolean(e?.rest)
   modalRef.value?.showModal()
 }
 
 async function saveEntry() {
   if (!selectedDateKey.value) return
   try {
-    await upsert(selectedDateKey.value, selectedActivities.value)
+    await upsert(selectedDateKey.value, selectedActivities.value, restDay.value)
     await refreshData(currentMonth.value)
     success('Day saved')
     modalRef.value?.close()
@@ -194,13 +212,23 @@ async function cleanActivityFromMonth(a) {
 }
 
 function toKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+function endOfMonth(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 0) }
 
 async function refreshData(baseDate = new Date()) {
-  const fromKey = toKey(new Date(baseDate.getFullYear(), baseDate.getMonth(), 1))
-  const toKeyStr = toKey(new Date(baseDate.getFullYear(), baseDate.getMonth() + 1, 0))
+  const year = baseDate.getFullYear()
+  const month = baseDate.getMonth()
+  const monthFromKey = toKey(new Date(year, month, 1))
+  const monthToKey = toKey(endOfMonth(baseDate))
+  const ytdFromKey = `${year}-01-01`
+  const ytdToKey = monthToKey // YTD até fim do mês em foco
   entriesLoading.value = true
-  await fetchRange(fromKey, toKeyStr)
+  ytdLoading.value = true
+  await Promise.all([
+    fetchRange(monthFromKey, monthToKey),
+    fetchYtdRange(ytdFromKey, ytdToKey)
+  ])
   entriesLoading.value = false
+  ytdLoading.value = false
 }
 
 onMounted(async () => {

@@ -16,8 +16,12 @@ export function useEntries() {
     loading.value = false
   }
 
-  async function upsert(dateKey, activities) {
-    await $fetch('/api/entries', { method: 'PUT', body: { dateKey, activities } })
+  async function upsert(dateKey, activities, rest = false) {
+    await $fetch('/api/entries', { method: 'PUT', body: { dateKey, activities, rest } })
+  }
+
+  async function setRest(dateKey, rest) {
+    await $fetch('/api/entries', { method: 'PUT', body: { dateKey, rest: Boolean(rest), activities: [] } })
   }
 
   async function remove(dateKey) {
@@ -29,7 +33,7 @@ export function useEntries() {
     await $fetch('/api/entries-activity', { method: 'DELETE', query })
   }
 
-  return { items, loading, error, fetchRange, upsert, remove, removeActivityFromEntries }
+  return { items, loading, error, fetchRange, upsert, setRest, remove, removeActivityFromEntries }
 }
 
 
