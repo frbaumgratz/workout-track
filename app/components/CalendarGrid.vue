@@ -15,7 +15,9 @@
         class="aspect-square border rounded p-3 text-left relative hover:bg-gray-50 disabled:opacity-30"
         :class="{
           'bg-green-50 border-green-200': cell.hasActivities,
-          'bg-white': !cell.hasActivities && cell.monthOffset === 0
+          'bg-yellow-50 border-yellow-200': cell.isRest,
+          'bg-red-50 border-red-200': cell.isNegativeRun,
+          'bg-white': !cell.hasActivities && !cell.isRest && !cell.isNegativeRun && cell.monthOffset === 0
         }"
         :disabled="cell.monthOffset !== 0"
         @click="onSelect(cell.dateIso)"
@@ -69,14 +71,16 @@ const cells = computed(() => {
   const map = new Map()
   for (const e of props.entries) {
     const k = typeof e.dateKey === 'string' ? e.dateKey : undefined
-    if (k) map.set(k, e.activities || [])
+    if (k) map.set(k, { activities: e.activities || [], rest: Boolean(e.rest) })
   }
   const out = []
   for (let i = 0; i < rows * 7; i++) {
     const d = new Date(firstCell)
     d.setDate(firstCell.getDate() + i)
     const key = toIso(d)
-    const activities = map.get(key) || []
+    const rec = map.get(key) || { activities: [], rest: false }
+    const activities = rec.activities || []
+    const isRest = Boolean(rec.rest)
     out.push({
       key,
       dateIso: key,
@@ -84,8 +88,30 @@ const cells = computed(() => {
       monthOffset: d.getMonth() - current.value.getMonth(),
       badges: activities.slice(0, 4), // Mostrar até 4 atividades
       totalActivities: activities.length,
-      hasActivities: activities.length > 0
+      hasActivities: activities.length > 0,
+      isRest,
+      isNegativeRun: false
     })
+  }
+  // Mark negative streak runs (>=4) inside current month view
+  // We check consecutive days with no activities and no rest
+  for (let i = 0; i < out.length; i++) {
+    if (out[i].monthOffset !== 0) continue
+    // Find contiguous segment starting at i
+    let j = i
+    while (
+      j < out.length &&
+      out[j].monthOffset === 0 &&
+      !out[j].hasActivities &&
+      !out[j].isRest
+    ) {
+      j++
+    }
+    const len = j - i
+    if (len >= 4) {
+      for (let k = i; k < j; k++) out[k].isNegativeRun = true
+    }
+    i = j
   }
   return out
 })
