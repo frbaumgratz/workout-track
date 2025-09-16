@@ -1,6 +1,13 @@
 <template>
   <div class="relative">
-    <button class="text-sm px-3 py-1.5 border rounded" @click="openDialog">Tools</button>
+    <div class="inline-flex gap-2">
+      <button class="text-sm px-3 py-1.5 border rounded" @click="openDialog">Tools</button>
+      <button
+        class="text-sm px-3 py-1.5 border rounded"
+        title="Manage activities (add/edit/delete)"
+        @click="showActivitiesManager"
+      >Manage Activities</button>
+    </div>
 
     <dialog ref="dialogRef" class="p-0 rounded-md w-[480px] max-w-[95vw]">
       <form method="dialog" class="p-4 border-b">
@@ -86,7 +93,7 @@ const toKey = ref('')
 const message = ref('')
 const dialogRef = ref()
 
-const { emitRefreshEntries } = useAppEvents()
+const { emitRefreshEntries, emitShowActivityManager } = useAppEvents()
 const { success, error: showError } = useToast()
 
 function toKeyFmt(d) {
@@ -202,6 +209,10 @@ async function clearCurrentMonth() {
     clearMsg.value = 'Failed to clear current month.'
     showError('Failed to clear current month')
   }
+}
+
+function showActivitiesManager() {
+  emitShowActivityManager()
 }
 </script>
 

@@ -4,7 +4,6 @@
       <div class="mx-auto px-4 py-4 flex items-center justify-between max-w-7xl">
         <NuxtLink to="/" class="font-semibold">{{ appName }}</NuxtLink>
         <nav class="flex items-center gap-4 text-sm">
-
           <ToolsMenu />
         </nav>
       </div>

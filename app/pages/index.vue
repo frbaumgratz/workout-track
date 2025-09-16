@@ -6,30 +6,37 @@
     <div class="lg:col-span-1">
       <SummarySidebar :entries="entries" :loading="entriesLoading" />
       <div class="mt-6">
-        <h3 class="font-medium mb-2">Activities</h3>
-        <form @submit.prevent="addActivity" class="flex gap-2">
-          <input v-model.trim="newActivity" placeholder="New activity" class="border rounded px-3 py-2 w-full" />
-          <button class="px-3 py-2 bg-black text-white rounded" :disabled="!newActivity">Add</button>
-        </form>
-        <ul class="mt-3 space-y-1">
-          <li v-for="a in activities" :key="a._id" class="flex items-center justify-between text-sm border rounded px-2 py-1">
-            <template v-if="editingId === a._id">
-              <input v-model.trim="editingName" class="border rounded px-2 py-1 w-full mr-2" />
-              <div class="flex items-center gap-2 ml-2">
-                <button class="text-green-700" @click="saveEdit(a)">Save</button>
-                <button class="text-gray-600" @click="cancelEdit">Cancel</button>
-              </div>
-            </template>
-            <template v-else>
-              <span>{{ a.name }}</span>
-              <div class="flex items-center gap-2">
-                
-                <button class="text-gray-700" @click="startEdit(a)">Edit</button>
-                <button class="text-red-600" @click="removeActivity(a._id)">Delete</button>
-              </div>
-            </template>
-          </li>
-        </ul>
+        <div class="flex items-center justify-between">
+          <h3 class="font-medium mb-2">Activities</h3>
+          <button class="text-sm underline" @click="toggleActivitiesVisible" v-if="activitiesVisible">Hide</button>
+        </div>
+        <div v-if="!activitiesVisible" class="text-sm text-gray-600">
+          Activities manager hidden. Use "Manage Activities" in Tools to show.
+        </div>
+        <div v-else>
+          <form @submit.prevent="addActivity" class="flex gap-2">
+            <input v-model.trim="newActivity" placeholder="New activity" class="border rounded px-3 py-2 w-full" />
+            <button class="px-3 py-2 bg-black text-white rounded" :disabled="!newActivity">Add</button>
+          </form>
+          <ul class="mt-3 space-y-1">
+            <li v-for="a in activities" :key="a._id" class="flex items-center justify-between text-sm border rounded px-2 py-1">
+              <template v-if="editingId === a._id">
+                <input v-model.trim="editingName" class="border rounded px-2 py-1 w-full mr-2" />
+                <div class="flex items-center gap-2 ml-2">
+                  <button class="text-green-700" @click="saveEdit(a)">Save</button>
+                  <button class="text-gray-600" @click="cancelEdit">Cancel</button>
+                </div>
+              </template>
+              <template v-else>
+                <span>{{ a.name }}</span>
+                <div class="flex items-center gap-2">
+                  <button class="text-gray-700" @click="startEdit(a)">Edit</button>
+                  <button class="text-red-600" @click="removeActivity(a._id)">Delete</button>
+                </div>
+              </template>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </section>
@@ -70,6 +77,7 @@ const { items: entries, fetchRange, upsert, remove, removeActivityFromEntries } 
 const { success, error: showError } = useToast()
 
 const entriesLoading = ref(false)
+const activitiesVisible = useState('activitiesVisible', () => false)
 const selectedDateKey = ref('')
 const selectedActivities = ref([])
 const modalRef = ref()
@@ -199,14 +207,22 @@ onMounted(async () => {
   await Promise.all([fetchActivities(), refreshData()])
 })
 
-const { onRefreshEntries } = useAppEvents()
+const { onRefreshEntries, onShowActivityManager } = useAppEvents()
 onRefreshEntries(async () => {
   await refreshData()
+})
+
+onShowActivityManager(() => {
+  activitiesVisible.value = true
 })
 
 const currentMonth = ref(new Date())
 function onMonthChange(d) {
   currentMonth.value = new Date(d)
   refreshData(currentMonth.value)
+}
+
+function toggleActivitiesVisible() {
+  activitiesVisible.value = !activitiesVisible.value
 }
 </script>
