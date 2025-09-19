@@ -46,8 +46,6 @@
             <span class="truncate mr-2">{{ row.name }}</span>
             <div class="flex items-center gap-2">
               <span class="text-gray-700">M {{ row.monthCount }} · Y {{ row.yearCount }}</span>
-              <span v-if="row.streakMonth" class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-700">S M {{ row.streakMonth }}</span>
-              <span v-if="row.streakYear" class="px-1.5 py-0.5 text-xs rounded bg-gray-100 text-gray-700">S Y {{ row.streakYear }}</span>
             </div>
           </li>
         </ul>
@@ -72,6 +70,8 @@ function toKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart
 function startOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1) }
 function endOfMonth(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 0) }
 function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x }
+function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()) }
+function isSameMonth(a, b) { return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() }
 
 
 function mapByDate(entries) {
@@ -148,23 +148,7 @@ function computeCurrentNegativeStreak(dateMap, from, to) {
   return count
 }
 
-function computeCurrentActivityStreak(dateMap, from, to, activityName) {
-  let count = 0
-  for (let d = new Date(to); d >= from; d = addDays(d, -1)) {
-    const rec = dateMap.get(toKey(d))
-    const acts = rec?.activities || []
-    const isRest = Boolean(rec?.rest)
-    if (acts.includes(activityName)) {
-      count++
-    } else if (isRest) {
-      // rest: does not break
-      continue
-    } else {
-      break
-    }
-  }
-  return count
-}
+// per-activity streak removed by design
 
 const totals = computed(() => {
   const baseMonth = props.currentMonth ? new Date(props.currentMonth) : new Date()
@@ -184,18 +168,21 @@ const streaks = computed(() => {
   const baseMonth = props.currentMonth ? new Date(props.currentMonth) : new Date()
   const mFrom = startOfMonth(baseMonth)
   const mTo = endOfMonth(baseMonth)
+  const today = startOfDay(new Date())
+  const mToEffective = isSameMonth(baseMonth, today) ? today : mTo
   const yFrom = new Date(baseMonth.getFullYear(), 0, 1)
   const yTo = mTo
+  const yToEffective = isSameMonth(baseMonth, today) ? today : yTo
   const monthMap = mapByDate(props.entriesMonth)
   const yearMap = mapByDate(props.entriesYear)
   return {
     month: {
-      any: computeCurrentAnyStreak(monthMap, mFrom, mTo),
-      negative: computeCurrentNegativeStreak(monthMap, mFrom, mTo)
+      any: computeCurrentAnyStreak(monthMap, mFrom, mToEffective),
+      negative: computeCurrentNegativeStreak(monthMap, mFrom, mToEffective)
     },
     year: {
-      any: computeCurrentAnyStreak(yearMap, yFrom, yTo),
-      negative: computeCurrentNegativeStreak(yearMap, yFrom, yTo)
+      any: computeCurrentAnyStreak(yearMap, yFrom, yToEffective),
+      negative: computeCurrentNegativeStreak(yearMap, yFrom, yToEffective)
     }
   }
 })
@@ -204,8 +191,11 @@ const activityRows = computed(() => {
   const baseMonth = props.currentMonth ? new Date(props.currentMonth) : new Date()
   const mFrom = startOfMonth(baseMonth)
   const mTo = endOfMonth(baseMonth)
+  const today = startOfDay(new Date())
+  const mToEffective = isSameMonth(baseMonth, today) ? today : mTo
   const yFrom = new Date(baseMonth.getFullYear(), 0, 1)
   const yTo = mTo
+  const yToEffective = isSameMonth(baseMonth, today) ? today : yTo
   const monthMap = mapByDate(props.entriesMonth)
   const yearMap = mapByDate(props.entriesYear)
   const monthCounts = computeActivityCounts(monthMap, mFrom, mTo)
@@ -216,9 +206,7 @@ const activityRows = computed(() => {
     rows.push({
       name,
       monthCount: monthCounts.get(name) || 0,
-      yearCount: yearCounts.get(name) || 0,
-      streakMonth: computeCurrentActivityStreak(monthMap, mFrom, mTo, name),
-      streakYear: computeCurrentActivityStreak(yearMap, yFrom, yTo, name)
+      yearCount: yearCounts.get(name) || 0
     })
   }
   rows.sort((a, b) => (b.monthCount - a.monthCount) || a.name.localeCompare(b.name))

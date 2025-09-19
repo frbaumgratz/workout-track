@@ -47,7 +47,6 @@ Sometimes I train twice a day. Over time, it becomes hard to remember what I did
 - Streaks displayed:
   - Any-activity streak (Month, YTD)
   - Negative streak (Month, YTD)
-  - Per-activity streak (Month, YTD)
 - Scheduled rest does not count in totals and does not break streaks
 
 ### 4. Customization

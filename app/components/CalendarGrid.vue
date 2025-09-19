@@ -47,8 +47,12 @@ const props = defineProps({
   entries: { type: Array, default: () => [] }
 })
 
-const today = new Date()
-const current = ref(new Date(today.getFullYear(), today.getMonth(), 1))
+import { useCalendarFocus } from '../composables/useCalendarFocus'
+const { focusedMonth, setFocusedMonth } = useCalendarFocus()
+const current = computed({
+  get() { return new Date(focusedMonth.value) },
+  set(v) { setFocusedMonth(v) }
+})
 
 const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
@@ -59,6 +63,7 @@ const monthLabel = computed(() =>
 function startOfMonth(d) { return new Date(d.getFullYear(), d.getMonth(), 1) }
 function endOfMonth(d) { return new Date(d.getFullYear(), d.getMonth() + 1, 0) }
 function toIso(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` }
+function startOfDay(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()) }
 
 const cells = computed(() => {
   const start = startOfMonth(current.value)
@@ -93,17 +98,20 @@ const cells = computed(() => {
       isNegativeRun: false
     })
   }
-  // Mark negative streak runs (>=4) inside current month view
+  // Mark negative streak runs (>=4) inside current month view, capped at today
   // We check consecutive days with no activities and no rest
   for (let i = 0; i < out.length; i++) {
     if (out[i].monthOffset !== 0) continue
+    // do not mark future dates as negative
+    const today = startOfDay(new Date())
     // Find contiguous segment starting at i
     let j = i
     while (
       j < out.length &&
       out[j].monthOffset === 0 &&
       !out[j].hasActivities &&
-      !out[j].isRest
+      !out[j].isRest &&
+      new Date(out[j].dateIso) <= today
     ) {
       j++
     }

@@ -37,10 +37,10 @@
 
 ## Streaks
 - Any-activity streak: consecutive days with ≥ 1 activity; multiple activities on the same day count as 1 for this streak
-- Per-activity streak: consecutive days that include a specific activity; counts 1 per day
 - Negative streak: consecutive days with no activities and no scheduled rest
 - Scheduled rest does not break streaks and does not increment them
 - Streaks are calculated and displayed for Month and YTD
+- For the current month, streak calculations are capped at today (no future days)
 
 ## Rest Days
 - Entries support an optional `rest: boolean`

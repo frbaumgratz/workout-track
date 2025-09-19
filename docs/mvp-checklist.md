@@ -10,7 +10,7 @@
 ## Summary & Stats
 - [x] Sidebar with monthly + YTD breakdown (days active, total activities)
 - [x] Per-activity counts: "Month x · Year y"
-- [x] Streaks (any, per-activity, negative) for Month and YTD
+- [x] Streaks (any, negative) for Month and YTD
 - [x] Summary updates in real-time after marking an activity
 
 ## Customization

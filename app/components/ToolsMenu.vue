@@ -84,6 +84,7 @@
 <script setup>
 import { useAppEvents } from '../composables/useAppEvents'
 import { useToast } from '../composables/useToast'
+import { useCalendarFocus } from '../composables/useCalendarFocus'
 
 const activities = ref([])
 const markedNames = ref([])
@@ -101,7 +102,8 @@ function toKeyFmt(d) {
 }
 
 function presetMonth() {
-  const base = new Date()
+  const { focusedMonth } = useCalendarFocus()
+  const base = new Date(focusedMonth.value)
   fromKey.value = toKeyFmt(new Date(base.getFullYear(), base.getMonth(), 1))
   toKey.value = toKeyFmt(new Date(base.getFullYear(), base.getMonth() + 1, 0))
   clearFromKey.value = fromKey.value
@@ -188,8 +190,9 @@ async function clearRange() {
 }
 
 async function clearCurrentMonth() {
-  const now = new Date()
-  const currentMonth = now.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })
+  const { focusedMonth } = useCalendarFocus()
+  const base = new Date(focusedMonth.value)
+  const currentMonth = base.toLocaleString('pt-BR', { month: 'long', year: 'numeric' })
   
   if (!confirm(`Tem certeza que deseja limpar todas as atividades de ${currentMonth}?`)) return
   
@@ -197,9 +200,9 @@ async function clearCurrentMonth() {
   dialogRef.value?.close()
   
   try {
-    // Get current month date range
-    const fromKey = toKeyFmt(new Date(now.getFullYear(), now.getMonth(), 1))
-    const toKey = toKeyFmt(new Date(now.getFullYear(), now.getMonth() + 1, 0))
+    // Get focused month date range
+    const fromKey = toKeyFmt(new Date(base.getFullYear(), base.getMonth(), 1))
+    const toKey = toKeyFmt(new Date(base.getFullYear(), base.getMonth() + 1, 0))
     
     await $fetch('/api/entries.clear', { method: 'DELETE', query: { fromKey, toKey } })
     clearMsg.value = `Cleared all activities from ${currentMonth}.`

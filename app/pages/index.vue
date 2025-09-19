@@ -83,6 +83,7 @@ import { useActivities } from '../composables/useActivities'
 import { useEntries } from '../composables/useEntries'
 import { useAppEvents } from '../composables/useAppEvents'
 import { useToast } from '../composables/useToast'
+import { useCalendarFocus } from '../composables/useCalendarFocus'
 
 const { items: activities, fetchActivities, createActivity, deleteActivity, updateActivity } = useActivities()
 // Month entries instance
@@ -244,9 +245,10 @@ onShowActivityManager(() => {
   activitiesVisible.value = true
 })
 
-const currentMonth = ref(new Date())
+const { focusedMonth, setFocusedMonth } = useCalendarFocus()
+const currentMonth = focusedMonth
 function onMonthChange(d) {
-  currentMonth.value = new Date(d)
+  setFocusedMonth(d)
   refreshData(currentMonth.value)
 }
 
