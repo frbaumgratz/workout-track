@@ -1,23 +1,34 @@
 <template>
   <div class="max-w-md mx-auto">
-    <h1 class="text-xl font-semibold mb-4">Register</h1>
-    <form @submit.prevent="onSubmit" class="space-y-3">
-      <label class="block">
-        <span class="text-sm">Username</span>
-        <input v-model.trim="username" class="mt-1 w-full border rounded px-3 py-2" required />
-      </label>
-      <label class="block">
-        <span class="text-sm">Password</span>
-        <input v-model="password" type="password" class="mt-1 w-full border rounded px-3 py-2" required />
-      </label>
-      <p class="text-xs text-gray-500">At least 8 characters</p>
-      <button class="px-4 py-2 bg-black text-white rounded disabled:opacity-50" :disabled="submitting">
-        <span v-if="submitting">Creating...</span>
-        <span v-else>Register</span>
-      </button>
-      <p v-if="message" class="text-sm text-red-600">{{ message }}</p>
-    </form>
-    <p class="mt-3 text-sm">Already have an account? <NuxtLink to="/login" class="underline">Login</NuxtLink></p>
+    <div class="mb-6 flex items-center gap-3">
+      <div class="h-10 w-10 rounded-full bg-green-100 text-green-700 flex items-center justify-center">
+        <Icon name="i-heroicons-user-plus" class="h-6 w-6" />
+      </div>
+      <div>
+        <h1 class="text-xl font-semibold">Create your account</h1>
+        <p class="text-sm text-gray-500">New here? Register to start tracking.</p>
+      </div>
+    </div>
+
+    <div class="p-4 border rounded-lg bg-white shadow-sm">
+      <form @submit.prevent="onSubmit" class="space-y-3">
+        <label class="block">
+          <span class="text-sm">Username</span>
+          <input v-model.trim="username" class="mt-1 w-full border rounded px-3 py-2" required />
+        </label>
+        <label class="block">
+          <span class="text-sm">Password</span>
+          <input v-model="password" type="password" class="mt-1 w-full border rounded px-3 py-2" required />
+        </label>
+        <p class="text-xs text-gray-500">At least 8 characters</p>
+        <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50" :disabled="submitting">
+          <span v-if="submitting">Creating...</span>
+          <span v-else>Register</span>
+        </button>
+        <p v-if="message" class="text-sm text-red-600">{{ message }}</p>
+      </form>
+      <p class="mt-3 text-sm">Already have an account? <NuxtLink to="/login" class="underline text-green-700">Login</NuxtLink></p>
+    </div>
   </div>
 </template>
 
