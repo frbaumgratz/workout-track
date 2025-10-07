@@ -22,6 +22,11 @@ export default defineNuxtConfig({
     }
   },
 
+  // Disable client app-manifest fetch to avoid /_nuxt/builds/meta 404s on Netlify
+  experimental: {
+    appManifest: false
+  },
+
   // Example runtime config (override via env)
   runtimeConfig: {
     apiSecret: process.env.NUXT_API_SECRET || '',
