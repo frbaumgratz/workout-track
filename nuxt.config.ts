@@ -37,6 +37,11 @@ export default defineNuxtConfig({
     }
   },
 
+  // Disable client app-manifest fetch to avoid /_nuxt/builds/meta 404s on Netlify
+  experimental: {
+    appManifest: false
+  },
+
   // Route rules demonstrate per-path behavior (edit as needed)
   routeRules: {
     '/': { prerender: true }
