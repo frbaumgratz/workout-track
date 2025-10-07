@@ -1,6 +1,13 @@
 <template>
   <div class="relative">
-    <div class="inline-flex gap-2">
+    <div class="inline-flex gap-2 items-center">
+      <div v-if="auth.user" class="text-sm text-gray-600">{{ auth.user.username }}</div>
+      <button
+        v-if="auth.user"
+        class="text-sm px-3 py-1.5 border rounded"
+        title="Logout"
+        @click="onLogout"
+      >Logout</button>
       <button class="text-sm px-3 py-1.5 border rounded" @click="openDialog">Tools</button>
       <button
         class="text-sm px-3 py-1.5 border rounded"
@@ -85,6 +92,9 @@
 import { useAppEvents } from '../composables/useAppEvents'
 import { useToast } from '../composables/useToast'
 import { useCalendarFocus } from '../composables/useCalendarFocus'
+import { useAuth } from '../composables/useAuth'
+
+const auth = useAuth()
 
 const activities = ref([])
 const markedNames = ref([])
@@ -216,6 +226,13 @@ async function clearCurrentMonth() {
 
 function showActivitiesManager() {
   emitShowActivityManager()
+}
+
+async function onLogout() {
+  try {
+    await auth.logout()
+    await navigateTo('/login')
+  } catch {}
 }
 </script>
 

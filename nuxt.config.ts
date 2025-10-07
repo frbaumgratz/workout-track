@@ -25,6 +25,11 @@ export default defineNuxtConfig({
   // Example runtime config (override via env)
   runtimeConfig: {
     apiSecret: process.env.NUXT_API_SECRET || '',
+    auth: {
+      cookieName: process.env.NUXT_AUTH_COOKIE_NAME || 'sid',
+      sessionDays: Number(process.env.NUXT_AUTH_SESSION_DAYS || 365),
+      secureCookies: process.env.NODE_ENV === 'production'
+    },
     public: {
       appName: process.env.NUXT_PUBLIC_APP_NAME || 'Nuxt Template',
       apiBase: process.env.NUXT_PUBLIC_API_BASE || '/api',

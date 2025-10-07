@@ -1,5 +1,6 @@
 import { setResponseStatus } from 'h3'
 import { getDb } from '../utils/mongo'
+import { requireUser } from '../utils/auth'
 
 type UpsertBody = (
   { dateKey: string; activities?: string[]; rest?: boolean } |
@@ -28,15 +29,20 @@ export default defineEventHandler(async (event) => {
   const activitiesToSave = rest ? [] : cleanActivities
 
   try {
+    const { userId } = await requireUser(event)
     const db = await getDb()
     const now = new Date()
     const res = await db.collection('entries').updateOne(
-      { dateKey },
-      { $set: { activities: activitiesToSave, rest, dateKey, updatedAt: now }, $setOnInsert: { createdAt: now } },
+      { userId, dateKey },
+      { $set: { userId, activities: activitiesToSave, rest, dateKey, updatedAt: now }, $setOnInsert: { createdAt: now } },
       { upsert: true }
     )
     return { upserted: Boolean(res.upsertedId), matched: res.matchedCount }
   } catch (err: any) {
+    if (err?.statusCode === 401) {
+      setResponseStatus(event, 401)
+      return { error: 'UNAUTHORIZED' }
+    }
     setResponseStatus(event, 500)
     return { error: 'INTERNAL_ERROR', message: 'Failed to upsert entry' }
   }
