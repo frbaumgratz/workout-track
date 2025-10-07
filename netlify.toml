@@ -1,0 +1,12 @@
+[build]
+  # Build SSR for Netlify (Nitro preset automatically detected in Netlify CI)
+  command = "pnpm run build"
+  publish = ".netlify/publish"
+
+  # Configure environment for the build. These are safe to commit.
+  # We tell Netlify's secrets scanner to ignore Nuxt public runtime keys,
+  # since they are intentionally exposed in client assets.
+  [build.environment]
+    SECRETS_SCAN_OMIT_KEYS = "NUXT_PUBLIC_API_BASE,NUXT_PUBLIC_APP_NAME,NUXT_PUBLIC_TIME_ZONE"
+
+
