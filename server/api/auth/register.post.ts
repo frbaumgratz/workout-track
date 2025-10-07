@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
     // Auto-login new user
     await createSession(event, result.insertedId)
 
-    return { id: result.insertedId, username }
+    return { id: result.insertedId, username: usernameInput }
   } catch (err: any) {
     setResponseStatus(event, 500)
     return { error: 'INTERNAL_ERROR', message: 'Failed to register user' }
