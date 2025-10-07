@@ -16,9 +16,11 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 400)
     return { error: 'VALIDATION_ERROR', message: 'Expected { username, password }' }
   }
-  const username = body.username.trim()
+  const usernameInput = body.username.trim()
   const password = body.password
-  if (!isValidUsername(username)) {
+  // Accept case-insensitive input by validating the normalized key
+  const usernameKey = normalizeUsername(usernameInput)
+  if (!isValidUsername(usernameKey)) {
     setResponseStatus(event, 400)
     return { error: 'VALIDATION_ERROR', message: 'Username must be 3-32 chars: a-z, 0-9, -, _' }
   }
@@ -29,7 +31,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     const db = await getDb()
-    const usernameKey = normalizeUsername(username)
+    // Search with normalized key while keeping display username as originally provided
     const existing = await db.collection('users').findOne({ usernameKey })
     if (existing) {
       setResponseStatus(event, 409)
@@ -39,7 +41,7 @@ export default defineEventHandler(async (event) => {
     const now = new Date()
     const passwordHash = await hashPassword(password)
     const result = await db.collection('users').insertOne({
-      username,
+      username: usernameInput,
       usernameKey,
       passwordHash,
       createdAt: now,

@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 400)
     return { error: 'VALIDATION_ERROR', message: 'Expected { username, password }' }
   }
+  // Normalize username for lookup to match registration rule
   const usernameKey = normalizeUsername(body.username)
   try {
     const db = await getDb()
