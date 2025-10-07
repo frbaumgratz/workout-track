@@ -1,6 +1,6 @@
 [build]
   # Build SSR for Netlify (Nitro preset automatically detected in Netlify CI)
-  command = "pnpm run build && mkdir -p .netlify/publish && if [ -d .nuxt/dist/client ]; then cp -R .nuxt/dist/client/* .netlify/publish/; fi && if [ -d .output/public ]; then cp -R .output/public/* .netlify/publish/; fi"
+  command = "pnpm run build && mkdir -p .netlify/publish && if [ -d node_modules/.cache/nuxt/.nuxt/dist/client ]; then cp -R node_modules/.cache/nuxt/.nuxt/dist/client/* .netlify/publish/; fi && if [ -d .nuxt/dist/client ]; then cp -R .nuxt/dist/client/* .netlify/publish/; fi && if [ -d .output/public ]; then cp -R .output/public/* .netlify/publish/; fi"
   publish = ".netlify/publish"
 
   # Configure environment for the build. These are safe to commit.
