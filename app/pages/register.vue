@@ -18,7 +18,7 @@
         </label>
         <label class="block">
           <span class="text-sm">Password</span>
-          <input v-model="password" type="password" class="mt-1 w-full border rounded px-3 py-2" required />
+          <PasswordInput v-model="password" :required="true" autocomplete="new-password" />
         </label>
         <p class="text-xs text-gray-500">At least 6 characters</p>
         <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50" :disabled="submitting">
@@ -34,6 +34,7 @@
 
 <script setup>
 import { useAuth } from '../composables/useAuth'
+import PasswordInput from '../components/PasswordInput.vue'
 
 const username = ref('')
 const password = ref('')
