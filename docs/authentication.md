@@ -70,7 +70,7 @@ Add to `nuxt.config.ts` runtime config:
 - `POST /api/auth/register`
   - Body: `{ username, password }`
   - Validate username (3–32 chars, `[a-z0-9-_]`, case-insensitive unique)
-  - Validate password (min 8 chars)
+- Validate password (min 6 chars)
   - Create user, hash password
   - Option: auto-login by creating a session on success
 

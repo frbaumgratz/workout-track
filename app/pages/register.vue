@@ -20,7 +20,7 @@
           <span class="text-sm">Password</span>
           <input v-model="password" type="password" class="mt-1 w-full border rounded px-3 py-2" required />
         </label>
-        <p class="text-xs text-gray-500">At least 8 characters</p>
+        <p class="text-xs text-gray-500">At least 6 characters</p>
         <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded disabled:opacity-50" :disabled="submitting">
           <span v-if="submitting">Creating...</span>
           <span v-else>Register</span>
@@ -49,7 +49,9 @@ async function onSubmit() {
     await register({ username: username.value, password: password.value })
     await navigateTo('/')
   } catch (e) {
-    message.value = 'Failed to register (username may be taken)'
+    // Prefer server-provided validation error when available
+    const serverMessage = e?.data?.message || e?.message
+    message.value = serverMessage || 'Failed to register'
   } finally {
     submitting.value = false
   }

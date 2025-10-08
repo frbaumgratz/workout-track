@@ -23,9 +23,9 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 400)
     return { error: 'VALIDATION_ERROR', message: 'Username must be 3-32 chars: a-z, 0-9, -, _' }
   }
-  if (password.length < 8) {
+  if (password.length < 6) {
     setResponseStatus(event, 400)
-    return { error: 'VALIDATION_ERROR', message: 'Password must be at least 8 characters' }
+    return { error: 'VALIDATION_ERROR', message: 'Password must be at least 6 characters' }
   }
 
   try {

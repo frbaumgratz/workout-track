@@ -39,7 +39,8 @@ export function useAuth() {
       const data = await $fetch('/api/auth/register', { method: 'POST', body: { username, password } })
       userState.value = { username: data.username }
     } catch (e) {
-      errorState.value = 'Failed to register'
+      // Surface server-provided error when available
+      errorState.value = e?.data?.message || e?.message || 'Failed to register'
       throw e
     } finally {
       loadingState.value = false
